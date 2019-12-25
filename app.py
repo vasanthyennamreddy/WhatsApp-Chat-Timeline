@@ -68,7 +68,6 @@ post = """
 </html>
 """
 
-UPLOAD_FOLDER = '/tmp'
 ALLOWED_EXTENSIONS = {'txt'}
 
 def allowed_file(filename):
