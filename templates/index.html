@@ -1,0 +1,36 @@
+<html>  
+<head>  
+    <title>Whatsapp Chat Timeline</title>  
+</head>  
+<body>  
+    <h1>Whatsapp Chat Timeline</h1>
+    <hr/>
+    <div style="border: 1px solid black; background-color: rgb(238, 134, 134);">
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+    </div>
+    <h3>Instructions</h3>
+    <ul>
+        <li>Upload file in the form given below</li>
+        <li>File will be analyzed on server and you will be redirected to page with your analysis</li>
+    </ul>
+    <h3>Note:</h3>
+    <ul>
+        <li>Code is open-sourced, can be seen on GitHub <a href="http://">here</a>, deployed on heroku from same repo</li>
+        <li>None of the chats you have uploaded will be stored - no need to worry about privacy (Have a look at source code for proof)</li>
+    </ul>
+    <h3>Help Needed!!</h3>
+    <p>I am tired of styling web pages, if you are interested to make this site look better then please send a Pull Request. Looking forward for your contribution :)</p>
+    <form action = "/analyze" method = "post" enctype="multipart/form-data">  
+        <input type="file" name="file" />  
+        <input type = "submit" value="Upload"> 
+    </form>  
+</body>  
+</html>  
