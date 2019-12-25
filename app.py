@@ -26,6 +26,7 @@ div.google-visualization-tooltip {
 <body>
     
   <ul>
+    <li>View site on Desktop, hover doesn't work on touch devices. Also site not optimized for small screens</li>
     <li>Scroll on the plot to view all the dates in order</li>
     <li>Hover on specific timeline to view the continous time (messages with in 5 minutes of each is considered continuous) for which chat continued</li>
     <li>If a chat spans two different days (during mid night) then hover time is the whole continuous time i.e, inclusive of both days</li>
