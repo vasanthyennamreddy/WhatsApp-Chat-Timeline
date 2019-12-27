@@ -75,6 +75,15 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def get_date(s_date):
+    date_patterns = ['%d/%m/%y, %H:%M', '%d/%m/%Y, %H:%M', '%d/%m/%y, %I:%M %p', '%d/%m/%Y, %I:%M %p']
+
+    for pattern in date_patterns:
+        try:
+            return datetime.strptime(s_date, pattern)
+        except:
+            pass
+
 attrs = ['years', 'months', 'days', 'hours', 'minutes', 'seconds']
 human_readable = lambda delta: ['%d %s' % (getattr(delta, attr), getattr(delta, attr) > 1 and attr or attr[:-1]) for attr in attrs if getattr(delta, attr)]
 
@@ -106,7 +115,7 @@ def analyze():
             str_time = line.split('-')[0].strip()
             if prev:
                 try:
-                    curr = datetime.strptime(str_time, '%d/%m/%y, %I:%M %p')
+                    curr = get_date(str_time)
                     # Ignore message if in 5 minutes of last message
                     if (curr - prev).total_seconds() <= 301:
                         prev = curr
@@ -137,7 +146,7 @@ def analyze():
                     pass
             else:
                 try:
-                    prev = datetime.strptime(str_time, '%d/%m/%y, %I:%M %p')
+                    prev = get_date(str_time)
                     first_start = prev
                 except:
                     # Handle long messages
@@ -169,7 +178,7 @@ def analyze():
                     [ '{slot['Finish'].year}-{slot['Finish'].month}-{slot['Finish'].day}', '', '{slot['Time']}', new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, {slot['Finish'].hour}, {slot['Finish'].minute}, 0) ],"""
         except:
             pass
-        
+
     return pre + content + post
 
 if __name__ == "__main__":
