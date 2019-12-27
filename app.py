@@ -145,28 +145,31 @@ def analyze():
 
             last_line = line
             line = fp.readline()
+        time_slot = ' '.join(human_readable(relativedelta(prev, start)))
+        if time_slot == '':
+            time_slot = '< 1 minute'
+        df.append(
+            dict(Start=start, Finish=prev, Time=time_slot)
+        )
     # Delete Saved file
     os.remove(filePath)
-    time_slot = ' '.join(human_readable(relativedelta(prev, start)))
-    if time_slot == '':
-        time_slot = '< 1 minute'
-    df.append(
-        dict(Start=start, Finish=prev, Time=time_slot)
-    )
 
     content = ""
 
     for slot in df:
         # Ignoring chats longing continuously more than a day! Cause considering only human chats
-        if slot['Start'].day == slot['Finish'].day :
-            content += f"""
-                [ '{slot['Start'].year}-{slot['Start'].month}-{slot['Start'].day}', '', '{slot['Time']}', new Date(0, 0, 0, {slot['Start'].hour}, {slot['Start'].minute}, 0), new Date(0, 0, 0, {slot['Finish'].hour}, {slot['Finish'].minute}, 0) ],"""
-        else :
-            content += f"""
-                [ '{slot['Start'].year}-{slot['Start'].month}-{slot['Start'].day}', '', '{slot['Time']}', new Date(0, 0, 0, {slot['Start'].hour}, {slot['Start'].minute}, 0), new Date(0, 0, 0, 24, 0, 0) ],"""
-            content += f"""
-                [ '{slot['Finish'].year}-{slot['Finish'].month}-{slot['Finish'].day}', '', '{slot['Time']}', new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, {slot['Finish'].hour}, {slot['Finish'].minute}, 0) ],"""
-    
+        try:
+            if slot['Start'].day == slot['Finish'].day :
+                content += f"""
+                    [ '{slot['Start'].year}-{slot['Start'].month}-{slot['Start'].day}', '', '{slot['Time']}', new Date(0, 0, 0, {slot['Start'].hour}, {slot['Start'].minute}, 0), new Date(0, 0, 0, {slot['Finish'].hour}, {slot['Finish'].minute}, 0) ],"""
+            else :
+                content += f"""
+                    [ '{slot['Start'].year}-{slot['Start'].month}-{slot['Start'].day}', '', '{slot['Time']}', new Date(0, 0, 0, {slot['Start'].hour}, {slot['Start'].minute}, 0), new Date(0, 0, 0, 24, 0, 0) ],"""
+                content += f"""
+                    [ '{slot['Finish'].year}-{slot['Finish'].month}-{slot['Finish'].day}', '', '{slot['Time']}', new Date(0, 0, 0, 0, 0, 0), new Date(0, 0, 0, {slot['Finish'].hour}, {slot['Finish'].minute}, 0) ],"""
+        except:
+            pass
+        
     return pre + content + post
 
 if __name__ == "__main__":
