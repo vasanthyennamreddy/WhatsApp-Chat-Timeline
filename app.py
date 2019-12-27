@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, url_for, flash, redirect
+from werkzeug.utils import secure_filename
 import os
 
 from datetime import datetime
@@ -84,59 +85,68 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    fp = request.files['file']
-    if fp.filename == '':
+    in_file = request.files['file']
+    if in_file.filename == '':
         flash('No file selected')
         return redirect(url_for('index'))
-    if not allowed_file(fp.filename):
+    if not allowed_file(in_file.filename):
         flash('Extension not .txt, are you using exported chat file ? Only .txt files are allowed')
         return redirect(url_for('index'))
     df = []
-    prev = None
-    start = None
-    prev_end = None
-    for line in fp.read().decode('utf-8').split('\n'):
-        str_time = line.split('-')[0].strip()
-        if prev:
-            try:
-                curr = datetime.strptime(str_time, '%d/%m/%y, %I:%M %p')
-                # Ignore message if in 5 minutes of last message
-                if (curr - prev).total_seconds() <= 301:
+    filePath =  '/tmp/'
+    filePath += secure_filename(in_file.filename)
+    # Save file to read line by line (required for large files)
+    in_file.save(os.path.join(filePath))
+    with open(filePath, 'r') as fp:
+        line = fp.readline()
+        prev = None
+        start = None
+        prev_end = None
+        while line:
+            str_time = line.split('-')[0].strip()
+            if prev:
+                try:
+                    curr = datetime.strptime(str_time, '%d/%m/%y, %I:%M %p')
+                    # Ignore message if in 5 minutes of last message
+                    if (curr - prev).total_seconds() <= 301:
+                        prev = curr
+                        last_line = line
+                        line = fp.readline()
+                        continue
+
+                    prev_end = prev
+                    if start:
+                        time_slot = ' '.join(human_readable(relativedelta(prev_end, start)))
+                        if time_slot == '':
+                            time_slot = '< 1 minute'
+                        df.append(
+                            dict(Start=start, Finish=prev_end, Time=time_slot)
+                        )
+                    else:
+                        time_slot = ' '.join(human_readable(relativedelta(prev_end, first_start)))
+                        if time_slot == '':
+                            time_slot = '< 1 minute'
+                        df.append(
+                            dict(Start=first_start, Finish=prev_end, Time=time_slot)
+                        )
+
+                    start = curr
                     prev = curr
-                    last_line = line
-                    continue
+                except:
+                    # Handle long messages
+                    pass
+            else:
+                try:
+                    prev = datetime.strptime(str_time, '%d/%m/%y, %I:%M %p')
+                    first_start = prev
+                except:
+                    # Handle long messages
+                    pass
 
-                prev_end = prev
-                if start:
-                    time_slot = ' '.join(human_readable(relativedelta(prev_end, start)))
-                    if time_slot == '':
-                        time_slot = '< 1 minute'
-                    df.append(
-                        dict(Start=start, Finish=prev_end, Time=time_slot)
-                    )
-                else:
-                    time_slot = ' '.join(human_readable(relativedelta(prev_end, first_start)))
-                    if time_slot == '':
-                        time_slot = '< 1 minute'
-                    df.append(
-                        dict(Start=first_start, Finish=prev_end, Time=time_slot)
-                    )
-
-                start = curr
-                prev = curr
-            except:
-                # Handle long messages
-                pass
-        else:
-            try:
-                prev = datetime.strptime(str_time, '%d/%m/%y, %I:%M %p')
-                first_start = prev
-            except:
-                # Handle long messages
-                pass
-
-        last_line = line
-    
+            last_line = line
+            line = fp.readline()
+    # Delete Saved file
+    os.remove(filePath)
     time_slot = ' '.join(human_readable(relativedelta(prev, start)))
     if time_slot == '':
         time_slot = '< 1 minute'
